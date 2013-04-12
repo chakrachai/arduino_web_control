@@ -7,6 +7,7 @@ IPAddress ip(192, 168, 137, 20);
 EthernetServer server(8080);
 String HTTP_req;
 boolean LED_status = 0;
+int led = 13;
 
 
 void setup()
@@ -14,7 +15,7 @@ void setup()
     Ethernet.begin(mac, ip);
     server.begin();
     Serial.begin(9600);
-    pinMode(13, OUTPUT);
+    pinMode(led, OUTPUT);
 }
 
 
@@ -32,6 +33,7 @@ void loop()
                     client.println("HTTP/1.1 200 OK");
                     client.println("Content-Type: text/html");
                     client.println("Connection: close");
+                    client.println();
                     client.println("<!DOCTYPE html>");
                     client.println("<html>");
                     client.println("<head>");
@@ -41,7 +43,9 @@ void loop()
                     client.println("<h1><font color=#ffff33>Control LED</font></h1>");
                     client.println("<p><font color=#ffffff>pass key to led</font></p>");
                     client.println("<form method=\"get\">");
-                    ProcessCheckbox(client);
+                    client.println("<button name=\"Ledon\" value=\"true\" type=\"submit\">onled</button>");
+                    client.println("<button name=\"Ledon\" value=\"false\" type=\"submit\">offled</button>");
+                    ProcessPinButton(client);
                     client.println("</form>");
                     client.println("</body>");
                     client.println("</html>");
@@ -61,24 +65,15 @@ void loop()
         client.stop();
     }
 }
-void ProcessCheckbox(EthernetClient cl)
+void ProcessPinButton(EthernetClient cl)
 {
-    if (HTTP_req.indexOf("LED2=2") > -1) {
-        if (LED_status) {
-            LED_status = 0;
-        }
-        else {
-            LED_status = 1;
-        }
-    }
-    if (LED_status) {
-        digitalWrite(13, HIGH);
-        cl.println("<input type=\"checkbox\" name=\"LED2\" value=\"2\" \
-        onclick=\"submit();\" checked>LED");
+    String s = HTTP_req.substring(6,18);
+    if (s.indexOf("Ledon=true") == 0) {
+            cl.println(s.indexOf("Ledon=false"));
+            digitalWrite(13, HIGH);
     }
     else {
-        digitalWrite(13, LOW);
-        cl.println("<input type=\"checkbox\" name=\"LED2\" value=\"2\" \
-        onclick=\"submit();\">LED");
+            cl.println(s.indexOf("Ledon=false"));
+            digitalWrite(13, LOW);
     }
 }
